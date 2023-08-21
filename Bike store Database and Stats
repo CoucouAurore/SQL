@@ -1,0 +1,28 @@
+--Create a bike store database
+
+
+CREATE TABLE bikestore (id INTEGER PRIMARY KEY, name TEXT, price INTEGER, manufacture TEXT, rate INTEGER);
+
+
+INSERT INTO bikestore VALUES (1, "AAA", 33, "china", 5);
+INSERT INTO bikestore VALUES (2, "BBB", 9, "china", 5);
+INSERT INTO bikestore VALUES (3, "CCC", 8,"china", 5);
+INSERT INTO bikestore VALUES (4, "APA", 83,"china", 5);
+INSERT INTO bikestore VALUES (5, "AOA", 73,"china", 5);
+INSERT INTO bikestore VALUES (6, "ASA", 43,"china", 5);
+INSERT INTO bikestore VALUES (7, "ABA", 13,"china", 5);
+INSERT INTO bikestore VALUES (8, "AWA", 23,"china", 5);
+INSERT INTO bikestore VALUES (9, "AEA", 33,"china", 5);
+INSERT INTO bikestore VALUES (10, "A$A", 32,"china", 5);
+INSERT INTO bikestore VALUES (11, "ATA", 35,"china", 5);
+INSERT INTO bikestore VALUES (12, "AGA", 38,"china", 5);
+INSERT INTO bikestore VALUES (13, "AFA", 30,"china", 5);
+INSERT INTO bikestore VALUES (14, "AQA", 46,"china", 5);
+INSERT INTO bikestore VALUES (15, "AYA", 47,"china", 5);
+
+
+--Display the database ordered by price
+SELECT * from bikestore ORDER BY price;
+
+--How many different types of bikes we have and what is their market value?
+SELECT id,SUM(price) FROM bikestore;
