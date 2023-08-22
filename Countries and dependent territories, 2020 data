@@ -223,52 +223,88 @@ SELECT * FROM countries;
 
 
 
-/*Average, Max, and Min Values in the Data*/
+/*Average, Max, and Min of Various Columns*/
 SELECT
     AVG(population) AS avg_population,
     MAX(population) AS max_population,
     MIN(population) AS min_population,
+    AVG(percent_one_year_change) AS avg_percent_change,
+    MAX(percent_one_year_change) AS max_percent_change,
+    MIN(percent_one_year_change) AS min_percent_change,
+    AVG(population_change) AS avg_population_change,
+    MAX(population_change) AS max_population_change,
+    MIN(population_change) AS min_population_change,
+    AVG(density_per_sq_km) AS avg_density,
+    MAX(density_per_sq_km) AS max_density,
+    MIN(density_per_sq_km) AS min_density,
+    AVG(area_sq_km) AS avg_area,
+    MAX(area_sq_km) AS max_area,
+    MIN(area_sq_km) AS min_area,
+    AVG(net_migrants) AS avg_net_migrants,
+    MAX(net_migrants) AS max_net_migrants,
+    MIN(net_migrants) AS min_net_migrants,
+    AVG(fertility_rate) AS avg_fertility_rate,
+    MAX(fertility_rate) AS max_fertility_rate,
+    MIN(fertility_rate) AS min_fertility_rate,
     AVG(median_age) AS avg_median_age,
     MAX(median_age) AS max_median_age,
-    MIN(median_age) AS min_median_age
+    MIN(median_age) AS min_median_age,
+    AVG(percent_of_world_pop) AS avg_percent_of_world_pop,
+    MAX(percent_of_world_pop) AS max_percent_of_world_pop,
+    MIN(percent_of_world_pop) AS min_percent_of_world_pop
 FROM
     countries;
 
 
-/*Calculating Average, Max, and Min Per Category Using HAVING*/
+
+
+
+/*Population, Percent Change, etc. Per Name Using HAVING*/
 SELECT
     name,
     AVG(population) AS avg_population,
-    MAX(population) AS max_population,
-    MIN(population) AS min_population
+    AVG(percent_one_year_change) AS avg_percent_change,
+    AVG(population_change) AS avg_population_change,
+    AVG(density_per_sq_km) AS avg_density,
+    AVG(area_sq_km) AS avg_area,
+    AVG(net_migrants) AS avg_net_migrants,
+    AVG(fertility_rate) AS avg_fertility_rate,
+    AVG(median_age) AS avg_median_age,
+    AVG(percent_of_world_pop) AS avg_percent_of_world_pop
 FROM
     countries
 GROUP BY
-    name
-HAVING
-    COUNT(*) >= 5; -- This filters continents with at least 5 countries
+    name;
 
 
 
 /*Grouping Data Values That Don't Exist Yet Using CASE*/
 SELECT
     CASE
-        WHEN density_per_sq_km < 50 THEN 'Low Density'
-        WHEN density_per_sq_km >= 50 AND density_per_sq_km < 200 THEN 'Medium Density'
+        WHEN density_per_sq_km < 10 THEN 'Low Density'
+        WHEN density_per_sq_km >= 10 AND density_per_sq_km < 100 THEN 'Medium Density'
         ELSE 'High Density'
-    END AS density_group,
+    END AS density_category,
     COUNT(*) AS count
 FROM
     countries
 GROUP BY
-    density_group;
+    density_category;
 
 
 
-/*countries with a population over 100 million OR a fertility rate above 2.0*/
+/*to select countries with a population greater than 100 million OR a fertility rate less than 2*/
 SELECT
-    *
+    name,
+    population,
+    fertility_rate
 FROM
     countries
 WHERE
-    population > 100000000 OR fertility_rate > 2.0;
+    population > 100000000
+    OR
+    fertility_rate < 2.0;
+
+
+
+
