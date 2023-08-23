@@ -1,0 +1,132 @@
+-- Create the People table
+CREATE TABLE People (
+    person_id INTEGER PRIMARY KEY,
+    name TEXT,
+    occupation TEXT,
+    birthplace TEXT,
+    spouse_id INTEGER
+);
+
+-- Create the Movies table
+CREATE TABLE Movies (
+    movie_id INTEGER PRIMARY KEY,
+    title TEXT,
+    release_year INTEGER,
+    actor_id INTEGER,
+    actress_id INTEGER,
+    FOREIGN KEY (actor_id) REFERENCES People(person_id),
+    FOREIGN KEY (actress_id) REFERENCES People(person_id)
+);
+
+-- Create the Songs table
+CREATE TABLE Songs (
+    song_id INTEGER PRIMARY KEY,
+    title TEXT,
+    artist_id INTEGER,
+    songwriter_id INTEGER,
+    FOREIGN KEY (artist_id) REFERENCES People(person_id),
+    FOREIGN KEY (songwriter_id) REFERENCES People(person_id)
+);
+
+-- Create the Books table
+CREATE TABLE Books (
+    book_id INTEGER PRIMARY KEY,
+    title TEXT,
+    author_id INTEGER,
+    FOREIGN KEY (author_id) REFERENCES People(person_id)
+);
+
+-- Create the Characters table
+CREATE TABLE Characters (
+    character_id INTEGER PRIMARY KEY,
+    name TEXT,
+    related_to_id INTEGER,
+    book_id INTEGER,
+    FOREIGN KEY (related_to_id) REFERENCES Characters(character_id),
+    FOREIGN KEY (book_id) REFERENCES Books(book_id)
+);
+
+-- Insert sample data into People table
+INSERT INTO People (name, occupation, birthplace) VALUES
+    ('Tom Hanks', 'Actor', 'Concord, California'),
+    ('Julia Roberts', 'Actress', 'Smyrna, Georgia'),
+    ('Adele', 'Singer', 'Tottenham, London'),
+    ('Taylor Swift', 'Singer', 'Reading, Pennsylvania'),
+    ('J.K. Rowling', 'Author', 'Yate, Gloucestershire'),
+    ('Stephen King', 'Author', 'Portland, Maine'),
+    ('Forrest Gump', 'Fictional Character', NULL),
+    ('Harry Potter', 'Fictional Character', NULL);
+
+-- Insert sample data into Movies table
+INSERT INTO Movies (title, release_year, actor_id, actress_id) VALUES
+    ('Forrest Gump', 1994, 1, 2),
+    ('Pretty Woman', 1990, 1, 2);
+
+-- Insert sample data into Songs table
+INSERT INTO Songs (title, artist_id, songwriter_id) VALUES
+    ('Hello', 3, 3),
+    ('Love Story', 4, 4);
+
+-- Insert sample data into Books table
+INSERT INTO Books (title, author_id) VALUES
+    ('Harry Potter and the Philosopher''s Stone', 5),
+    ('The Shining', 6);
+
+-- Insert sample data into Characters table
+INSERT INTO Characters (name, related_to_id, book_id) VALUES
+    ('Forrest Gump', NULL, NULL),
+    ('Harry Potter', NULL, 1),
+    ('Hermione Granger', 2, 1),
+    ('Ron Weasley', 2, 1),
+    ('Jack Torrance', NULL, 2);
+
+
+
+
+/*Movie stars: What movies are they in? Are they married to each other?*/
+-- Find movies for Tom Hanks (person_id = 1)
+SELECT title FROM Movies WHERE actor_id = 1;
+
+-- Check if Tom Hanks and Julia Roberts are married
+SELECT 
+    CASE 
+        WHEN p1.spouse_id = p2.person_id THEN 'Yes'
+        ELSE 'No'
+    END AS married
+FROM People AS p1
+JOIN People AS p2 ON p1.person_id = 1 AND p2.name = 'Julia Roberts';
+
+
+
+
+/*Singers: What songs did they write? Where are they from?*/
+-- Find songs written by Adele (person_id = 3)
+SELECT title FROM Songs WHERE songwriter_id = 3;
+
+-- Find the birthplace of Taylor Swift (person_id = 4)
+SELECT birthplace FROM People WHERE person_id = 4;
+
+
+
+/*Authors: What books did they write?*/
+-- Find books written by J.K. Rowling (person_id = 5)
+SELECT title FROM Books WHERE author_id = 5;
+
+-- Find books written by Stephen King (person_id = 6)
+SELECT title FROM Books WHERE author_id = 6;
+
+
+
+
+/*Fictional characters: How are they related to other characters? What books do they show up in?*/
+-- Find characters related to Harry Potter (character_id = 2)
+SELECT name FROM Characters WHERE related_to_id = 2;
+
+-- Find books in which Forrest Gump appears
+SELECT B.title FROM Books AS B
+JOIN Characters AS C ON B.book_id = C.book_id
+WHERE C.name = 'Forrest Gump';
+
+
+
+
