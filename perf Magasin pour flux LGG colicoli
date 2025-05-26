@@ -1,0 +1,28 @@
+SELECT 
+    awb.awb_id,
+    awb.clearance_airport,
+    awb.cargo_station,
+    CONVERT_TZ(awb.ata, 'UTC', 'Europe/Paris') as ATA,
+    CONVERT_TZ(awb.first_nop, 'UTC', 'Europe/Paris') as RCM,
+    CONVERT_TZ(awb.pickup_at, 'UTC', 'Europe/Paris') as Pick_up,
+    CONVERT_TZ(awb.first_stock_in_at, 'UTC', 'Europe/Paris') as First_IN,
+    seconds_diff(
+        CONVERT_TZ(awb.first_nop, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(awb.ata, 'UTC', 'Europe/Paris')
+    ) / 3600 AS ATA_NOP_aging_BRUT,
+    seconds_diff(
+        CONVERT_TZ(awb.pickup_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(awb.first_nop, 'UTC', 'Europe/Paris')
+    ) / 3600 AS NOP_Pickup_aging_BRUT,
+    seconds_diff(
+        CONVERT_TZ(awb.first_stock_in_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(awb.ata, 'UTC', 'Europe/Paris')
+    ) / 3600 AS ATA_IN_aging_BRUT
+FROM awb
+WHERE EXISTS (
+    SELECT 1 
+    FROM box_global 
+    WHERE box_global.awb_id = awb.awb_id 
+    AND box_global.transfer_product IN ('COLICOLI_BE2FR_GNS_TEMU')
+)
+AND CONVERT_TZ(awb.ata, 'UTC', 'Europe/Paris') BETWEEN '2025-05-01' AND '2025-05-20'
