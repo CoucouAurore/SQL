@@ -1,0 +1,201 @@
+SELECT 
+    pc_filtered.tracking_number,
+    CONVERT_TZ(pc_filtered.created_at, 'UTC', 'Europe/Paris') as created_at,
+    pc_filtered.transfer_product,
+    pc_filtered.client,
+    pc_filtered.box_id,
+    pc_filtered.awb_id,
+    CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris') AS ATA_FR,
+    pc_filtered.clearance_airport,
+    CONVERT_TZ(pc_filtered.first_nop, 'UTC', 'Europe/Paris') as NOP,
+    CONVERT_TZ(pc_filtered.first_stock_in_at, 'UTC', 'Europe/Paris') as first_stock_in,
+    CONVERT_TZ(pc_filtered.definitive_stock_out, 'UTC', 'Europe/Paris') as definitive_stock_out,
+    excl_wkd_aging(CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris'), CONVERT_TZ(ot_filtered.timestamp, 'UTC', 'Europe/Paris')) AS global_aging,
+    CONVERT_TZ(ot_filtered.timestamp, 'UTC', 'Europe/Paris') AS Handover_at,
+    
+    CASE 
+        WHEN pc_filtered.transfer_product IN ('CP_BE2FR_TEMU_BRB_SORT', 'COLICOLI_BE2FR_GNS_TEMU', 'COLISSIMO_BE2FR_TEMU_LTH_ONLY','COLISSIMO_BE2FR_HDF_TEMU','MR_BE2FR_HAR_LOS_TEMU') THEN 'ATA~HANDOVER <= 48.00h (Excluding Weekend & Holidays)'
+        WHEN pc_filtered.transfer_product IN ('DHL_BE2DE_PICKUP_TEMU','HERMES_BE2DE_PK_TEMU','INPOST_BE2PL_PICKUP_TEMU','HERMES_BE2DE_BRU_PK_TEMU') THEN 'ATA~HANDOVER <= 36.00h (Excluding Weekend & Holidays)'
+        WHEN pc_filtered.transfer_product = 'DHL_BE2DE_BRU_PK_TEMU' THEN 'ATA~HANDOVER <= 48.00h (Excluding Weekend & Holidays)'
+        ELSE NULL
+    END AS KPI,
+    
+    CONVERT_TZ(pc_filtered.sog_stock_in_at, 'UTC', 'Europe/Paris') AS SOG_Stock_In,
+    CONVERT_TZ(pc_filtered.sog_stock_out_at, 'UTC', 'Europe/Paris') AS SOG_Stock_Out,
+    CONVERT_TZ(pc_filtered.gns_stock_in_at, 'UTC', 'Europe/Paris') AS GNS_Stock_In,
+    CONVERT_TZ(pc_filtered.gns_stock_out_at, 'UTC', 'Europe/Paris') AS GNS_Stock_Out,
+    CONVERT_TZ(pc_filtered.definitive_stockout_waybill, 'UTC', 'Europe/Paris') AS Definitive_Out_waybill,
+    
+    
+    
+    
+    
+    
+    seconds_diff(
+        CONVERT_TZ(pc_filtered.first_nop, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris')
+    ) / 3600 AS ATA_NOP_aging_BRUT,
+    
+    
+    seconds_diff(
+        CONVERT_TZ(pc_filtered.first_stock_in_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(pc_filtered.first_nop, 'UTC', 'Europe/Paris')
+    ) / 3600 AS NOP_IN_aging_BRUT,
+    
+    
+    seconds_diff(
+        CONVERT_TZ(pc_filtered.first_stock_in_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris')
+    ) / 3600 AS ATA_IN_aging_BRUT,
+    
+    
+    
+    
+    
+    
+    seconds_diff(
+        CONVERT_TZ(pc_filtered.sog_stock_out_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(pc_filtered.sog_stock_in_at, 'UTC', 'Europe/Paris')
+    ) / 3600 AS SOG_IN_OUT_aging_BRUT,
+    excl_wkd_aging(CONVERT_TZ(pc_filtered.sog_stock_in_at, 'UTC', 'Europe/Paris'), CONVERT_TZ(pc_filtered.sog_stock_out_at, 'UTC', 'Europe/Paris')) AS SOG_IN_OUT_Aging_net,
+    
+    
+    
+    
+    seconds_diff(
+        CONVERT_TZ(pc_filtered.gns_stock_out_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(pc_filtered.gns_stock_in_at, 'UTC', 'Europe/Paris')
+    ) / 3600 AS GNS_IN_OUT_aging_BRUT,
+    excl_wkd_aging(CONVERT_TZ(pc_filtered.gns_stock_in_at, 'UTC', 'Europe/Paris'), CONVERT_TZ(pc_filtered.gns_stock_out_at, 'UTC', 'Europe/Paris')) AS GNS_IN_OUT_Aging_net,
+    
+    
+    
+    
+    
+    CONVERT_TZ(db.stock_in_at, 'UTC', 'Europe/Paris') as LGG_IN,
+    CONVERT_TZ(db.stock_out_at, 'UTC', 'Europe/Paris') as LGG_OUT,
+    
+    seconds_diff(
+        CONVERT_TZ(db.stock_out_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(db.stock_in_at, 'UTC', 'Europe/Paris')
+    ) / 3600 AS LGG_IN_OUT_aging_BRUT,
+    excl_wkd_aging(CONVERT_TZ(db.stock_in_at, 'UTC', 'Europe/Paris'), CONVERT_TZ(db.stock_out_at, 'UTC', 'Europe/Paris')) AS LGG_IN_OUT_aging_net,
+    
+    
+    
+    
+    
+    
+    
+    CONVERT_TZ(mb.stock_in_at, 'UTC', 'Europe/Paris') as BRU_IN,
+    CONVERT_TZ(mb.stock_out_at, 'UTC', 'Europe/Paris') as BRU_OUT,
+    
+    seconds_diff(
+        CONVERT_TZ(mb.stock_out_at, 'UTC', 'Europe/Paris'),
+        CONVERT_TZ(mb.stock_in_at, 'UTC', 'Europe/Paris')
+    ) / 3600 AS BRU_IN_OUT_aging_BRUT,
+    excl_wkd_aging(CONVERT_TZ(mb.stock_in_at, 'UTC', 'Europe/Paris'), CONVERT_TZ(mb.stock_out_at, 'UTC', 'Europe/Paris')) AS BRU_IN_OUT_Aging_net,
+    
+
+    awb.cargo_station AS Magasin
+FROM 
+    (
+        SELECT 
+            tracking_number,
+            created_at,
+            transfer_product,
+            client,
+            box_id,
+            awb_id,
+            ata,
+            clearance_airport,
+            first_nop,
+            first_stock_in_at,
+            definitive_stock_out,
+            definitive_stockout_waybill,
+            sog_stock_in_at,
+            sog_stock_out_at,
+            gns_stock_in_at,
+            gns_stock_out_at
+            
+        FROM 
+            parcel
+        WHERE 
+            created_at >= '2025-02-01'
+            AND client = 'TEMU'
+            AND clearance_airport IN ('BRU','LGG')
+    ) pc_filtered
+LEFT JOIN 
+    (
+        SELECT 
+            tracking_number,
+            created_at,
+            client,
+            client_event_code,
+            timestamp
+        FROM 
+            bi_dwd.ofs_ftm_trace
+        WHERE 
+            created_at >= '2025-02-01'
+            AND client = 'TEMU'
+            AND client_event_code = '清关交付'
+    ) ot_filtered
+ON 
+    pc_filtered.tracking_number = ot_filtered.tracking_number
+
+
+LEFT JOIN
+    bi_dwm.awb awb 
+ON 
+    awb.awb_id = pc_filtered.awb_id
+
+LEFT JOIN
+    (
+    SELECT  
+        box_id,
+        stock_in_at,
+        palletized_at,
+        load_at,
+        stock_out_at
+    FROM
+         bi_dwm.box_operation_record
+    where
+         warehouse = 'EP_LGG'
+    ) db
+
+ON 
+    db.box_id = pc_filtered.box_id
+    
+LEFT JOIN
+    (
+    SELECT  
+        box_id,
+        stock_in_at,
+        palletized_at,
+        load_at,
+        stock_out_at
+    FROM
+         bi_dwm.box_operation_record
+    where
+         warehouse = 'EP_BRU'
+    ) mb
+
+ON 
+    mb.box_id = pc_filtered.box_id
+    
+
+
+    
+WHERE 
+    pc_filtered.transfer_product IN ('DHL_BE2DE_BRU_PK_TEMU')
+    
+    AND (
+        (pc_filtered.transfer_product IN ('DHL_BE2DE_BRU_PK_TEMU','COLISSIMO_BE2FR_HDF_TEMU','CP_BE2FR_TEMU_BRB_SORT','COLICOLI_BE2FR_GNS_TEMU','MR_BE2FR_HAR_LOS_TEMU') 
+         AND excl_wkd_aging(CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris'), CONVERT_TZ(ot_filtered.timestamp, 'UTC', 'Europe/Paris')) > 48)
+        OR 
+        (pc_filtered.transfer_product IN ('DHL_BE2DE_PICKUP_TEMU' ,'HERMES_BE2DE_PK_TEMU','INPOST_BE2PL_PICKUP_TEMU','HERMES_BE2DE_BRU_PK_TEMU')
+         AND excl_wkd_aging(CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris'), CONVERT_TZ(ot_filtered.timestamp, 'UTC', 'Europe/Paris')) > 36)
+        OR
+        CONVERT_TZ(ot_filtered.timestamp, 'UTC', 'Europe/Paris') is null
+    )
+    AND CONVERT_TZ(pc_filtered.ata, 'UTC', 'Europe/Paris') between '2025-04-09' and '2025-04-12'
